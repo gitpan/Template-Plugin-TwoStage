@@ -1,0 +1,55 @@
+Template-Plugin-TwoStage
+
+Template::Plugin::TwoStage delivers two stage processing of template blocks with first stage caching, and comes as a plugin to the Template Toolkit. 
+
+INSTALLATION
+
+To install this module, run the following commands:
+
+	perl Makefile.PL
+	make
+	make test
+	make install
+
+DEPENDENCIES
+
+	Test::More			tested with 0.78 ( included in at least perl 5.8.8 )
+        Class::Data::Inheritable 	tested with 0.04
+        Digest::SHA1 			tested with 2.11
+        Template 			tested with 2.19
+        URI::Escape 			tested with 3.28
+	File::Path			tested with 1.08 ( included in at least perl 5.8.8 )
+	File::Spec			tested with 3.12 ( included in at least perl 5.8.8 )
+        Cwd 				tested with 3.12 ( included in at least perl 5.8.8 )
+
+Earlier versions might also work - but this has not been verified by the author. On installation no minimum version will be required for any of these modules. If someone encounters a minimum version requirement to any of these modules, the author will highly appreciate any information about this.
+
+SUPPORT AND DOCUMENTATION
+
+After installing, you can find documentation for this module with the
+perldoc command.
+
+    perldoc Template::Plugin::TwoStage
+
+You can also look for information at:
+
+    RT, CPAN's request tracker
+        http://rt.cpan.org/NoAuth/Bugs.html?Dist=Template-Plugin-TwoStage
+
+    AnnoCPAN, Annotated CPAN documentation
+        http://annocpan.org/dist/Template-Plugin-TwoStage
+
+    CPAN Ratings
+        http://cpanratings.perl.org/d/Template-Plugin-TwoStage
+
+    Search CPAN
+        http://search.cpan.org/dist/Template-Plugin-TwoStage
+
+
+COPYRIGHT AND LICENCE
+
+Copyright (C) 2008 Alexander Kühne
+
+This program is free software; you can redistribute it and/or modify it
+under the same terms as Perl itself.
+

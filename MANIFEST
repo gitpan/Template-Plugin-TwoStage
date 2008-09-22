@@ -1,0 +1,16 @@
+Changes
+MANIFEST
+Makefile.PL
+README
+lib/Template/Plugin/TwoStage.pm
+lib/Template/Plugin/TwoStage/Test.pm
+t/00-load.t
+t/01-general.t
+t/02-subclass.t
+t/03-options.t
+t/pod-coverage.t
+t/pod.t
+t/general.tests
+t/options.tests
+t/tt/test_file_scope.tt
+META.yml                                 Module meta-data (added by MakeMaker)
