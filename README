@@ -1,6 +1,7 @@
 Template-Plugin-TwoStage
 
-Template::Plugin::TwoStage delivers two stage processing of template blocks with first stage caching, and comes as a plugin to the Template Toolkit. 
+Template::Plugin::TwoStage delivers two stage processing of template blocks 
+with first stage caching, and comes as a plugin to the Template Toolkit. 
 
 INSTALLATION
 
@@ -13,16 +14,20 @@ To install this module, run the following commands:
 
 DEPENDENCIES
 
-	Test::More			tested with 0.78 ( included in at least perl 5.8.8 )
+	constant			tested with 1.05 ( included at least 1.02 in perl >= 5.6.2 )
+	Test::More			tested with 0.78 ( included at least 0.47 in perl >= 5.6.2 )
         Class::Data::Inheritable 	tested with 0.04
         Digest::SHA1 			tested with 2.11
         Template 			tested with 2.19
         URI::Escape 			tested with 3.28
-	File::Path			tested with 1.08 ( included in at least perl 5.8.8 )
-	File::Spec			tested with 3.12 ( included in at least perl 5.8.8 )
-        Cwd 				tested with 3.12 ( included in at least perl 5.8.8 )
+	File::Path			tested with 1.08 ( included at least 1.0404 in perl >= 5.6.2 )
+	File::Spec			tested with 3.12 ( included at least 0.86 in perl >= 5.6.2 )
+        Cwd 				tested with 3.12 ( included at least 2.04 in perl >= 5.6.2 )
 
-Earlier versions might also work - but this has not been verified by the author. On installation no minimum version will be required for any of these modules. If someone encounters a minimum version requirement to any of these modules, the author will highly appreciate any information about this.
+Earlier versions might also work - but this has not been verified by the author. 
+On installation no minimum version will be required for any of these modules. If 
+someone encounters a minimum version requirement to any of these modules, the 
+author will highly appreciate any information on this.
 
 SUPPORT AND DOCUMENTATION
 

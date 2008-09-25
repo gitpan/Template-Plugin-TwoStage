@@ -12,11 +12,11 @@ use File::Path qw( rmtree mkpath );
 use File::Spec ();
 use Digest::SHA1 qw( sha1_hex );
 
-use constant { 
-	DEBUG => 0,
-	UNSAFE => '^A-Za-z0-9_',
-	CACHE_DIR_NAME => 'TT_P_TwoStage'
-};
+# declare constants one by one - as opposed to a multiple constants declaration -
+# in order to be compatible with constant.pm version 1.02 shipped with perl 5.6
+use constant DEBUG => 0;
+use constant UNSAFE => '^A-Za-z0-9_';
+use constant CACHE_DIR_NAME => 'TT_P_TwoStage';
 
 BEGIN  { 
 	eval qq|
@@ -47,11 +47,11 @@ Template::Plugin::TwoStage - two stage processing of template blocks with first 
 
 =head1 VERSION
 
-Version 0.01_01
+Version 0.01_02
 
 =cut
 
-our $VERSION = '0.01_01';
+our $VERSION = '0.01_02';
 
 
 =head1 SYNOPSIS

@@ -13,6 +13,7 @@ WriteMakefile(
     PL_FILES            => {},
 #    EXE_FILES		=> [], # for a possible 'bin/purge_twostage_cache.pl' script
     PREREQ_PM => {
+        'constant' => 0, # tested with 1.05
         'Test::More' => 0, # tested with 0.78
 	'Class::Data::Inheritable' => 0, # tested with 0.04
 	'Digest::SHA1' => 0, # tested with 2.11

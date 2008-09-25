@@ -1,4 +1,11 @@
 Revision history for Template-Plugin-TwoStage
 
+0.01_02    2008-09-25 - developer release
+* added dependency on constant.pm
+* made constants declarations compatible with version 
+  1.02 of constants.pm included in perl version 5.62
+  ( we were moving away from declaration of multiple 
+  constants in a single statement )
+
 0.01_01    2008-09-20 - developer release
 initial upload to cpan
