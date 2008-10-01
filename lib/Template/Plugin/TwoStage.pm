@@ -47,11 +47,11 @@ Template::Plugin::TwoStage - two stage processing of template blocks with first 
 
 =head1 VERSION
 
-Version 0.01_02
+Version 0.01
 
 =cut
 
-our $VERSION = '0.01_02';
+our $VERSION = '0.01';
 
 
 =head1 SYNOPSIS

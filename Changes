@@ -1,5 +1,8 @@
 Revision history for Template-Plugin-TwoStage
 
+0.01       2008-10-01
+bumped up version to first non-developer release
+
 0.01_02    2008-09-25 - developer release
 * added dependency on constant.pm
 * made constants declarations compatible with version 
