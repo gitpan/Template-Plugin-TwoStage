@@ -47,11 +47,11 @@ Template::Plugin::TwoStage - two stage processing of template blocks with first 
 
 =head1 VERSION
 
-Version 0.01
+Version 0.02
 
 =cut
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 
 =head1 SYNOPSIS
@@ -60,8 +60,8 @@ This is a plugin for the Template Toolkit that facilitates a two stage processin
 
 Basic usage in the a TT2-template:
 
-   [% 	USE cache = TwoStage( namespace => application.name ); # make an application specific namespace 
-	cache.process( 'template' => 'cached_page', keys => { 'bar' => bar  }, ttl => 60 * 60 );
+   [% 	USE TwoStage = TwoStage( namespace => application.name ); # make an application specific namespace (optional)
+	TwoStage.process( 'template' => 'cached_page', keys => { 'bar' => bar  }, ttl => 60 * 60 );
    	BLOCK cached_page; 
 		# use precompile tags or runtime tags here
    %]
@@ -344,8 +344,7 @@ sub new {
 
 sub error {
     my $proto = shift;
-    $proto->SUPER::error(@_);
-    die( Template::Exception->new( 'TwoStage', $proto->SUPER::error ) );
+    die( ref( $_[0] ) ? @_ : do { $proto->SUPER::error(@_); Template::Exception->new( 'TwoStage', $proto->SUPER::error ) } );
 }
 
 sub create {
@@ -426,7 +425,7 @@ sub process {
 	} 
     }; # making the config options local to this call
 
-    if ( $stash->get( 'TwoStage.precompile_mode') ) {    
+    if ( $stash->get( 'TwoStage_precompile_mode') ) {    
     	# don't do runtime phase processing if the template is called in precompilation mode
     	print STDERR "$params->{template}: precompile_mode ack..." if DEBUG;
 	return $context->process( $params->{template}, {}, 1 );	
@@ -546,11 +545,11 @@ sub _precompile {
 
     my $template;
     eval {
-	$template = $context->process( $self->{params}->{template}, { TwoStage => { precompile_mode => 1 } }, 1 );
+	$template = $context->process( $self->{params}->{template}, { TwoStage_precompile_mode => 1 }, 1 );
     };
     if ( $@ ) {
 	print STDERR "\tFAILED ($@)\n"  if DEBUG;
-	$self->error( "Precompilation of module $self->{params}->{template}: $@ \n" );
+	$self->error( ref($@) ? $@ : "Precompilation of module $self->{params}->{template}: $@ \n" );
     }
 
     print STDERR "storing ".$self->_signature."\n\n" if DEBUG;
@@ -595,7 +594,7 @@ sub _signature {
                 	map { "$_=".( $self->{params}->{keys}->{$_} || '' ) } keys %{$self->{params}->{keys}}
             	)
     	)
-    );
+    ).'.tt';
 } 
 
 sub _dynamic_dir_segments {
@@ -693,6 +692,10 @@ Situation: A template A includes another template B while both are using the Two
 =item * 
 
 Ensure there are no BLOCK definitions inside the BLOCK to be TwoStage processed! This is nothing specific to the TwoStage plugin really, but is a common mistake. Simply put those BLOCKs outside the BLOCK to be TwoStage processed. They will be visible to it anyway.
+
+=item *
+
+When altering option 'dev_mode' on plugin object instantiation or on calls to the methods process()/include() one has to be cautious in situations where calls to the TwoStage plugins methods process()/include() are nested: Remember to alter the option in the outermost call!
 
 =back
 

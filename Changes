@@ -1,5 +1,17 @@
 Revision history for Template-Plugin-TwoStage
 
+0.02       2009-04-02
+* extended and clarified documentation
+* prefer to rethrow template exceptions 
+* don't let TT stash variable 'TwoStage.precompile_mode'
+  - used to indicate precompilation stage in the stash -
+  interfere with default variable name for plugin object
+  'TwoStage' when instantiating the TwoStage plugin 
+  without assigning it to a variable at the same type
+  ("USE TwoStage;" vs. "USE cache = TwoStage;");
+  moved to variable name 'TwoStage_precompile_mode'
+* give 1st stage caching files the file extension '.tt'
+
 0.01       2008-10-01
 bumped up version to first non-developer release
 

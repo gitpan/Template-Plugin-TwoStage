@@ -7,7 +7,7 @@ use ExtUtils::MakeMaker;
 
 WriteMakefile(
     NAME                => 'Template::Plugin::TwoStage',
-    AUTHOR              => 'Alexander Kühne <alexander.kuehne@gmx.de>',
+    AUTHOR              => 'Alexander Kühne <alexk@cpan.org>',
     VERSION_FROM        => 'lib/Template/Plugin/TwoStage.pm',
     ABSTRACT_FROM       => 'lib/Template/Plugin/TwoStage.pm',
     PL_FILES            => {},
