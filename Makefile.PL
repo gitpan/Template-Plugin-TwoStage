@@ -10,6 +10,7 @@ WriteMakefile(
     AUTHOR              => 'Alexander Kühne <alexk@cpan.org>',
     VERSION_FROM        => 'lib/Template/Plugin/TwoStage.pm',
     ABSTRACT_FROM       => 'lib/Template/Plugin/TwoStage.pm',
+    LICENSE		=> 'perl',
     PL_FILES            => {},
 #    EXE_FILES		=> [], # for a possible 'bin/purge_twostage_cache.pl' script
     PREREQ_PM => {

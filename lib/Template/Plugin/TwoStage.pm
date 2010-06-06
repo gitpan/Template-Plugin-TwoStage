@@ -47,11 +47,11 @@ Template::Plugin::TwoStage - two stage processing of template blocks with first 
 
 =head1 VERSION
 
-Version 0.02
+Version 0.03
 
 =cut
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 
 
 =head1 SYNOPSIS
@@ -153,7 +153,7 @@ This plugin is subclassable. Though it is possible to use this module without su
 
    }
 
-Don't forget to add your sublcass to the plugin base of your TT2-configuration:
+Don't forget to add your subclass to the plugin base of your TT2-configuration:
 
 	PLUGIN_BASE => [ 'Your::Application::Template::Plugin' ]
 
@@ -560,7 +560,7 @@ sub _precompile {
     }
 
     open( FH, "> ".$self->_file_path ) || $self->error( "Could not get a filehandle! Error: $!" );
-    
+    binmode( FH );
 
     print FH 
     $TAGS_tag
@@ -568,7 +568,7 @@ sub _precompile {
     	&& 
     	$TAG_STYE_unquotemeta->{ $self->{CONFIG}->{runtime_tag_style} }->[0]
 	."# This precompiled template ( $self->{params}->{template} ) is stored together with the following keys:\n\t"
-	.join( "\n\t", map { "$_ => $self->{params}->{keys}->{$_}" } keys %{$self->{params}->{keys}} )."\n "
+	.join( "\n\t", map { "$_ => ".( defined $self->{params}->{keys}->{$_} ? $self->{params}->{keys}->{$_} : 'undef' ) } keys %{$self->{params}->{keys}} )."\n "
 	.$TAG_STYE_unquotemeta->{ $self->{CONFIG}->{runtime_tag_style} }->[1]."\n"
 	|| 
 	'' 
@@ -695,7 +695,7 @@ Ensure there are no BLOCK definitions inside the BLOCK to be TwoStage processed!
 
 =item *
 
-When altering option 'dev_mode' on plugin object instantiation or on calls to the methods process()/include() one has to be cautious in situations where calls to the TwoStage plugins methods process()/include() are nested: Remember to alter the option in the outermost call!
+When altering option 'dev_mode' on plugin object instantiation or on calls to the methods process()/include() one has to be cautious in situations where calls to the TwoStage plugin methods process()/include() are nested: Remember to alter the option in the outermost call!
 
 =back
 

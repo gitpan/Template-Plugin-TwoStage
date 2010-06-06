@@ -1,5 +1,15 @@
 Revision history for Template-Plugin-TwoStage
 
+0.03       2010-06-06
+* precompiled versions are stored in binary mode now
+  bypassing any io layers, and making tests pass also on
+  win platforms (CRLF io layer issues)
+* added missing LICENSE command to Makefile.PL
+* consideration of undefined values when storing  
+  precompilation keys together with precompiled 
+  templates
+* fixing minor typos in docs
+
 0.02       2009-04-02
 * extended and clarified documentation
 * prefer to rethrow template exceptions 
@@ -7,7 +17,7 @@ Revision history for Template-Plugin-TwoStage
   - used to indicate precompilation stage in the stash -
   interfere with default variable name for plugin object
   'TwoStage' when instantiating the TwoStage plugin 
-  without assigning it to a variable at the same type
+  without assigning it to a variable at the same time
   ("USE TwoStage;" vs. "USE cache = TwoStage;");
   moved to variable name 'TwoStage_precompile_mode'
 * give 1st stage caching files the file extension '.tt'
