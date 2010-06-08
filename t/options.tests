@@ -1,6 +1,6 @@
-# can we override options from class data on instantiation of the plugin?
 # caching_dir, precompile_tag_style, are supposed to be ignored
 -- test --
+-- name: can we override options from class data on instantiation of the plugin? --
 [% USE TwoStage = TwoStage( dev_mode => 1, namespace => 'blub', caching_dir => '/hano/', precompile_tag_style => 'asp', runtime_tag_style => 'html', ttl => 1, dir_keys => 1 );
    TwoStage.purge;
    TwoStage.dump_options;
@@ -13,8 +13,8 @@ precompile_tag_style: default
 runtime_tag_style: html
 ttl: 1
 
-# can we override options local to one call to the plugins process() method?
 -- test --
+-- name: can we override options local to one call to the plugins process() method? --
 [% USE TwoStage = TwoStage;
    blub = "bla\n";
    BLOCK test %]

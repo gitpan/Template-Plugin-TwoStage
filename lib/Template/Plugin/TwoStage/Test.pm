@@ -4,10 +4,6 @@ use warnings;
 use base qw( Template::Plugin::TwoStage );
 use File::Spec ();
 use Cwd ();
-use Template::Test ();
-
-$Template::Test::DEBUG = 1;
-$Template::Test::PRESERVE = 1;
 
 __PACKAGE__->caching_dir( &Template::Plugin::TwoStage::_concat_path( File::Spec->tmpdir(), [qw( alt_tt2_TwoStage )] ) );
 

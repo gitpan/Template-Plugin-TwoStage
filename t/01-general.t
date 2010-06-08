@@ -5,6 +5,10 @@ use warnings;
 use Template::Test;
 use Template::Plugin::TwoStage::Test;
 
-my $tests = Template::Plugin::TwoStage::Test->read_test_file( 'general.tests' );
+$Template::Test::DEBUG = 1;
+$Template::Test::PRESERVE = 1;
 
-test_expect($tests, Template::Plugin::TwoStage::Test->tt_config() );
+test_expect( 
+	Template::Plugin::TwoStage::Test->read_test_file( 'general.tests' ), 
+	Template::Plugin::TwoStage::Test->tt_config() 
+);

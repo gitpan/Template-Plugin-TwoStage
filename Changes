@@ -1,5 +1,18 @@
 Revision history for Template-Plugin-TwoStage
 
+0.04       2010-06-08
+* unicode support - decoded/encoded templates stay 
+  decoded/encoded in their precompiled version
+* the plugin now owns a specific provider object for
+  the retrieval of precompiled versions of templates -
+  this should make it compatible with any type
+  of provider class used in the TT object
+* based sample code on an imaginary Catalyst application
+* cleaned up docs a bit
+* refactoring test definitions for Template::Test : 
+  made use of -- name: xx -- mark up for labeling 
+  test cases
+
 0.03       2010-06-06
 * precompiled versions are stored in binary mode now
   bypassing any io layers, and making tests pass also on

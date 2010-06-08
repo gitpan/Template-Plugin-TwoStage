@@ -11,6 +11,7 @@ use Template::Exception;
 use File::Path qw( rmtree mkpath );
 use File::Spec ();
 use Digest::SHA1 qw( sha1_hex );
+use Encode ();
 
 # declare constants one by one - as opposed to a multiple constants declaration -
 # in order to be compatible with constant.pm version 1.02 shipped with perl 5.6
@@ -47,11 +48,11 @@ Template::Plugin::TwoStage - two stage processing of template blocks with first 
 
 =head1 VERSION
 
-Version 0.03
+Version 0.04
 
 =cut
 
-our $VERSION = '0.03';
+our $VERSION = '0.04';
 
 
 =head1 SYNOPSIS
@@ -60,8 +61,13 @@ This is a plugin for the Template Toolkit that facilitates a two stage processin
 
 Basic usage in the a TT2-template:
 
-   [% 	USE TwoStage = TwoStage( namespace => application.name ); # make an application specific namespace (optional)
-	TwoStage.process( 'template' => 'cached_page', keys => { 'bar' => bar  }, ttl => 60 * 60 );
+   [% 	USE TwoStage = TwoStage;
+	TwoStage.process( 
+		'template' => 'cached_page', 
+		keys => { 'bar' => bar  }, 
+		ttl => 60 * 60 
+	);
+
    	BLOCK cached_page; 
 		# use precompile tags or runtime tags here
    %]
@@ -71,8 +77,8 @@ Basic usage in the a TT2-template:
 		   ELSE;
 		   	# ...
 		   END;
-		%]	
-   [%	END %]
+   	END 
+   %]
 
 =head2 More features 
 
@@ -128,27 +134,32 @@ You might benefit from this module if ...
 
 This plugin is subclassable. Though it is possible to use this module without subclassing it, subclassing has many benefits and is the recommended way of use. Subclassing allows you to customize your plugin behaviour at a single place, and extend the template signature by some default keys. Still it lets you override the configuration on plugin instantiation or even on the call of the include() or precompile()-methods at your will with only local scope.
 
-=head2 Sample code
+=head2 Sample code 
+
+   # sample code is based on an imaginary Catalyst application Your::Application
 
    package Your::Application::Template::Plugin::TwoStage;
-   use base qw( Template::Plugin::TwoStage Your::Application );
+   use base qw( Template::Plugin::TwoStage );
 
-   __PACKAGE__->caching_dir( __PACKAGE__->Application->config->tmp_dir() );
+   __PACKAGE__->caching_dir( Your::Application->config->{home}.'/tmp' );
    __PACKAGE__->dev_mode( 1 );
    __PACKAGE__->ttl( 60 * 60 ); # 1 h
    __PACKAGE__->dir_keys( 1 );
    __PACKAGE__->runtime_tag_style( 'html' );
 
    sub extend_keys {
-        my ( $self, $keys ) = @_;
-        my $context = $self->{CONTEXT};
-        my $stash = $context->stash();
+        my $self = shift;
+	
+	my $s = $self->{CONTEXT}->stash;
 
-        # hook method for adding standard keys - return the keys => value -hash by reference! 
-        { domain => __PACKAGE__->Application->request->uri->authority,
-	  language => __PACKAGE__->Application->request->language,
-	  logged_in => __PACKAGE__->Application->request->session->logged_in,
-	  gui_style => __PACKAGE__->Application->request->session->preferences->gui_style
+	# get Catalyst context from stash
+	my $c = $s->get( 'c' );
+	my $r = $c->request;
+
+        # hook method for adding standard keys - return the keys => value -hash by reference!
+        { domain => $r->uri->authority,
+	  method => $r->method,
+	  logged_in => $c->user_exists
 	};
 
    }
@@ -173,6 +184,7 @@ The following configuration options may be set
    ... as class data for this module or a derived class:
        
 	caching_dir
+	tt_cache_size
 	dev_mode
 	ttl
 	namespace
@@ -197,7 +209,7 @@ The following configuration options may be set
 
 =head3 caching_dir
 
-The directory 'TT_P_TwoStage' in your platform specific tmp-directory determined with the help of File::Spec->tmpdir() is the default setting here. Pass a path in order to change it to some other directory - it will also be extended by a subdirectory 'TT_P_TwoStage'. In contrast to all the other configuration options this option can only be set as class data.
+The directory 'TT_P_TwoStage' in your platform specific tmp-directory determined with the help of File::Spec->tmpdir() is the default setting here. Pass a path in order to change it to some other directory - it will also be extended by a subdirectory 'TT_P_TwoStage'. In contrast to all the other configuration options - except 'tt_cache_size' - this option can only be set as class data.
 
 =cut
 
@@ -285,6 +297,20 @@ __PACKAGE__->mk_classdata( runtime_tag_style => 'star' );
 
 __PACKAGE__->mk_classdata( precompile_tag_style => undef ); # is always the configured tag style of Template - NO TwoStage econfig option
 
+
+=head3 tt_cache_size
+
+As one can produce a lot of precompiled versions of a single BLOCK controlled by this plugin using the 'keys' feature of process()/include(), it might be advisable in some situations to set the CACHE_SIZE TT configuration option to a positive value in order to curb memory consumption when having a TT singleton object around in a persistent environment.
+
+As the plugin uses a provider object specific to the plugin it will not respect the CACHE_SIZE configuration property possibly set in your main TT configuration. Use this method in order to set the CACHE_SIZE configuration property for the plugin's specific provider object. By default all precompiled templates are cached. 
+
+In contrast to all the other configuration options - except 'caching_dir' - this option can only be set as class data.
+
+=cut
+
+__PACKAGE__->mk_classdata( tt_cache_size => undef );
+
+
 =head2 Object hook methods 
 
 =head3 extend_keys
@@ -302,9 +328,9 @@ sub extend_keys {
     {};
 }
 
-=head2 Exports
+=head2 Exports to Stash
 
-None. 
+There is a temporary stash entry 'TwoStage_precompile_mode = 1;' in the precompilation stage of template processing.
 
 =cut
 
@@ -314,21 +340,40 @@ sub load {
     my ($class, $context) = @_;
     
     # register cache_dir with TT2-config variable INCLUDE_PATH
-    $class->caching_dir || $class->caching_dir( File::Spec->tmpdir() ); 
-    
-    unshift @{$context->{CONFIG}->{INCLUDE_PATH}}, 
-    do { 
-        my ($volume, $directories, $file) = File::Spec->splitpath( $class->caching_dir, 1 );
-    	File::Spec->catpath(
-    		$volume,
-		File::Spec->catdir( 
-			do { my @dirs = File::Spec->splitdir( $directories ); pop @dirs; @dirs }
-		) 
-    		,
-		$file
-    	);
-    }; 
+    $class->caching_dir || $class->caching_dir( File::Spec->tmpdir() );
+
     mkpath( $class->caching_dir, 0, 0700 ) if !-e $class->caching_dir;
+   
+    # We choose to have a specific provider for the plugin, because we do not want 
+    # to make any assumptions about which provider class is used by the user.
+    
+    # make include path
+
+    my ($volume, $directories, $file) = File::Spec->splitpath( $class->caching_dir, 1 );
+    # Strip off the class name from the caching directory 
+    # (which itself contains the class name as the last directory).
+    # The class name will be part of the template's relative path when calling process().
+     
+    my $inc_path = 
+    File::Spec->catpath(
+    	$volume,
+	File::Spec->catdir( 
+		do { my @dirs = File::Spec->splitdir( $directories ); pop @dirs; @dirs }
+	),
+	$file
+    );
+
+    my $p = Template::Provider->new(
+  	{ 	%{$context->{ CONFIG }},
+		INCLUDE_PATH => $inc_path,
+		CACHE_SIZE => $class->tt_cache_size,
+		COMPILE_EXT => '.ttc',
+		COMPILE_DIR => _concat_path( $inc_path, 'tt_compiled' ),
+	}
+    );
+    push @{$context->{ LOAD_TEMPLATES }}, $p;
+
+    $context->{ PREFIX_MAP }->{ twostage } = [ $p ];
     
     print STDERR "$class:\nwe use caching dir ".$class->caching_dir()."\n" if DEBUG;
     return $class;
@@ -431,8 +476,6 @@ sub process {
 	return $context->process( $params->{template}, {}, 1 );	
     }
 
-    # stat() it first to play safely with negative caching of TT2 introduced in recent versions 
-    # in combination with a positive STAT_TTL!
     if ( !$self->{CONFIG}->{dev_mode} ) {
     	print STDERR 
 	"try using cached version of component ($params->{template}) ".$self->_signature."\n"
@@ -441,6 +484,11 @@ sub process {
 
     	print STDERR "keys: \n".( join "\n", map { "$_ -> $self->{params}->{keys}->{$_}" } keys %{$self->{params}->{keys}} )."\n\n" if DEBUG;
 
+        # stat() the precompiled template to play safely with negative caching of TT2 introduced in recent versions 
+        # in combination with a positive STAT_TTL! Else requesting for a not yet existing precompiled version
+	# would lead to an immediate decline of a future request for the same precompiled template without 
+	# further stat() checks by the provider - even if it has been created on disk in the meantime.
+	
 	my @stat = stat( $self->_file_path );
 
 	print STDERR "ttl: $self->{CONFIG}->{ttl} ".time()." <= ".( $stat[9] + $self->{CONFIG}->{ttl})."\n" 
@@ -454,7 +502,8 @@ sub process {
 		my $output;
 		eval {
 			$output = 
-			$context->process( 
+			$context->process(
+				'twostage:'. # prefix for provider selection
 				uri_escape( ref($self), UNSAFE ).'/'
 				.( do { my $dirs = join( '/', @{$self->_dynamic_dir_segments} ); $dirs ? $dirs.'/' : '' } )
 				.$self->_signature, 
@@ -559,10 +608,9 @@ sub _precompile {
     	$self->error( "Couldn't create ".$self->_file_dir.": $@" );
     }
 
-    open( FH, "> ".$self->_file_path ) || $self->error( "Could not get a filehandle! Error: $!" );
-    binmode( FH );
+    open( my $fh, "> ", $self->_file_path ) || $self->error( "Could not get a filehandle! Error: $!" );
 
-    print FH 
+    my $out = 
     $TAGS_tag
     .( 	$self->{CONFIG}->{dev_mode} 
     	&& 
@@ -574,8 +622,20 @@ sub _precompile {
 	'' 
     )
     .$template; 
+    
+
+    if ( Encode::is_utf8( $template ) ) {
+    	print STDERR "_precompile: encode\n" if DEBUG;
+    	$out = Encode::decode_utf8( "\x{ef}\x{bb}\x{bf}" ).$out; # utf8 bom is stripped off again on load by Template::Provider
+	binmode( $fh ); # turn off crlf io layer!?
+	binmode( $fh, ':encoding(utf8)' );
+    } else {
+    	print STDERR "_precompile: octets\n" if DEBUG;
+	binmode( $fh );
+    }
      
-    close FH;
+    print $fh $out; 
+    close $fh;
 
     return \($TAGS_tag.$template);
 }
@@ -652,8 +712,6 @@ sub _file_dir {
 
 # helpers
 
-
-
 sub _concat_path {
     my ( $base_path, $append_dirs ) = @_;
     # $base_dir: base path (no filename) as string
@@ -700,22 +758,6 @@ When altering option 'dev_mode' on plugin object instantiation or on calls to th
 =back
 
 =cut
-
-# TODO Point to Template::Provider::Preload. Explain how to integrate with it. E.g. use namespace 'preload' and let ::Preload suck precompiled template versions saved to the according namespace directory into a persistent prefork environment on start up.
-
-=head1 CAVEATS
-
-=over 
-
-=item * INCLUDE_PATH
-
-Setting the INCLUDE_PATH option in the TT configuration is a must as of this version. But even setting it to a reference to an empty array is sufficient here.
-
-=item * CACHE_SIZE
-
-As one can produce a lot of versions of a single BLOCK using the 'keys' feature of process()/include(), it might be advisable in some situations to set the CACHE_SIZE TT configuration option to a positive value in order to curb memory consumption when having a TT singleton object around in a persistent environment like e.g. mod_perl.
-
-=back
 
 =head1 AUTHOR
 

@@ -1,6 +1,6 @@
 --- #YAML:1.0
 name:               Template-Plugin-TwoStage
-version:            0.03
+version:            0.04
 abstract:           two stage processing of template blocks with first stage caching
 author:
     - Alexander Kühne <alexk@cpan.org>
@@ -15,9 +15,10 @@ requires:
     constant:             0
     Cwd:                  0
     Digest::SHA1:         0
+    Encode:               0
     File::Path:           0
     File::Spec:           0
-    Template:             0
+    Template:             2.01
     Test::More:           0
     URI::Escape:          0
 no_index:

@@ -23,6 +23,7 @@ DEPENDENCIES
 	File::Path			tested with 1.08 ( included at least 1.0404 in perl >= 5.6.2 )
 	File::Spec			tested with 3.12 ( included at least 0.86 in perl >= 5.6.2 )
         Cwd 				tested with 3.12 ( included at least 2.04 in perl >= 5.6.2 )
+        Encode 				tested with 2.26 ( included at least 0.40 in perl >= 5.007003 )
 
 Earlier versions might also work - but this has not been verified by the author. 
 On installation no minimum version will be required for any of these modules. If 
