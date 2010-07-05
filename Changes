@@ -1,5 +1,12 @@
 Revision history for Template-Plugin-TwoStage
 
+0.05       2010-07-05
+* dzil'ed the distribution
+* reorganization and expansion of documentation
+* introduced plugin configuration via TT configuration 
+  hash
+* satisfied Perl::Critic a bit more
+
 0.04       2010-06-08
 * unicode support - decoded/encoded templates stay 
   decoded/encoded in their precompiled version

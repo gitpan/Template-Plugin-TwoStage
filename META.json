@@ -1,0 +1,53 @@
+{
+   "abstract" : "two stage processing of template blocks with first stage caching",
+   "author" : [
+      "Alexander K\u00fchne <alexk@cpan.org>"
+   ],
+   "dynamic_config" : 0,
+   "generated_by" : "Dist::Zilla version 4.101831, CPAN::Meta::Converter version 2.101670",
+   "license" : [
+      "perl_5"
+   ],
+   "meta-spec" : {
+      "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
+      "version" : "2"
+   },
+   "name" : "Template-Plugin-TwoStage",
+   "prereqs" : {
+      "configure" : {
+         "requires" : {
+            "ExtUtils::MakeMaker" : "6.31"
+         }
+      },
+      "runtime" : {
+         "requires" : {
+            "Class::Data::Inheritable" : 0,
+            "Cwd" : 0,
+            "Digest::SHA1" : 0,
+            "Encode" : 0,
+            "File::Path" : 0,
+            "File::Spec" : 0,
+            "Template" : "2.01",
+            "Template::Exception" : 0,
+            "Template::Parser" : 0,
+            "Template::Plugin" : 0,
+            "Template::Provider" : 0,
+            "URI::Escape" : 0,
+            "constant" : 0,
+            "perl" : "5.006"
+         },
+         "suggests" : {
+            "URI::Escape::XS" : 0
+         }
+      },
+      "test" : {
+         "requires" : {
+            "Template::Test" : 0,
+            "Test::More" : 0
+         }
+      }
+   },
+   "release_status" : "stable",
+   "version" : "0.05"
+}
+
