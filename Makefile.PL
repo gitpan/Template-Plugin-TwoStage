@@ -12,6 +12,8 @@ my %WriteMakefileArgs = (
   'ABSTRACT' => 'two stage processing of template blocks with first stage caching',
   'AUTHOR' => 'Alexander Kühne <alexk@cpan.org>',
   'BUILD_REQUIRES' => {
+    'File::Find' => '0',
+    'File::Temp' => '0',
     'Template::Test' => '0',
     'Test::More' => '0'
   },
@@ -37,7 +39,7 @@ my %WriteMakefileArgs = (
     'URI::Escape' => '0',
     'constant' => '0'
   },
-  'VERSION' => '0.05',
+  'VERSION' => '0.06',
   'test' => {
     'TESTS' => 't/*.t'
   }

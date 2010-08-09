@@ -4,7 +4,7 @@
       "Alexander K\u00fchne <alexk@cpan.org>"
    ],
    "dynamic_config" : 0,
-   "generated_by" : "Dist::Zilla version 4.101831, CPAN::Meta::Converter version 2.101670",
+   "generated_by" : "Dist::Zilla version 4.101900, CPAN::Meta::Converter version 2.101670",
    "license" : [
       "perl_5"
    ],
@@ -42,12 +42,14 @@
       },
       "test" : {
          "requires" : {
+            "File::Find" : 0,
+            "File::Temp" : 0,
             "Template::Test" : 0,
             "Test::More" : 0
          }
       }
    },
    "release_status" : "stable",
-   "version" : "0.05"
+   "version" : "0.06"
 }
 

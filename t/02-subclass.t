@@ -1,4 +1,12 @@
 #!/usr/bin/perl -w
+#
+# This file is part of Template-Plugin-TwoStage
+#
+# This software is copyright (c) 2010 by Alexander Kühne.
+#
+# This is free software; you can redistribute it and/or modify it under
+# the same terms as the Perl 5 programming language system itself.
+#
 use lib qw( ./lib ../blib );
 use strict;
 use warnings;

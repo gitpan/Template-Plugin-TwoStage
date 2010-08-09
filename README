@@ -3,7 +3,7 @@ NAME
     with first stage caching
 
 VERSION
-    version 0.05
+    version 0.06
 
 SYNOPSIS
     This is a plugin for the Template Toolkit that facilitates a two stage

@@ -1,6 +1,14 @@
+#
+# This file is part of Template-Plugin-TwoStage
+#
+# This software is copyright (c) 2010 by Alexander Kühne.
+#
+# This is free software; you can redistribute it and/or modify it under
+# the same terms as the Perl 5 programming language system itself.
+#
 package Template::Plugin::TwoStage;
 BEGIN {
-  $Template::Plugin::TwoStage::VERSION = '0.05';
+  $Template::Plugin::TwoStage::VERSION = '0.06';
 }
 # ABSTRACT: two stage processing of template blocks with first stage caching
 
@@ -22,7 +30,7 @@ use Encode ();
 
 # declare constants one by one - as opposed to a multiple constants declaration -
 # in order to be compatible with constant.pm version 1.02 shipped with perl 5.6
-use constant DEBUG => 0;
+use constant DEBUG => $ENV{TWOSTAGE_DEBUG} || 0;
 use constant UNSAFE => '^A-Za-z0-9_';
 use constant CACHE_DIR_NAME => 'TT_P_TwoStage';
 
@@ -71,7 +79,6 @@ __PACKAGE__->mk_classdata( namespace => undef );
 __PACKAGE__->mk_classdata( runtime_tag_style => 'star' );
 
 __PACKAGE__->mk_classdata( precompile_tag_style => undef ); # is always the configured tag style of the Template object
-
 
 
 __PACKAGE__->mk_classdata( tt_cache_size => undef );
@@ -176,14 +183,25 @@ sub compile_options {
 
     my %config;
     @config{ @options } = map { $class->$_ } @options;
+
     $config{ extend_keys } = \&Template::Plugin::TwoStage::extend_keys;
 
     if ( $class eq __PACKAGE__ && ( my $c = $context->{ CONFIG }->{ TwoStage } ) ) {
     	my @ack_opts = grep { scalar grep /^$_$/, @options } keys %$c;
+	# slurp in all options from TT2 main configuration hash
 	@config{ @ack_opts } = @$c{ @ack_opts };
 	my $xk = $c->{ extend_keys };
 	if ( defined $xk && ref $xk eq 'CODE' ) {
+		# xk() as configuration option in TT2 main configuration hash
 		$config{ extend_keys } = $xk;
+	}
+
+    } elsif ( $class ne __PACKAGE__ ) {
+    	no strict 'refs';
+	my $meth_name = "${class}::extend_keys";
+    	if ( defined &{$meth_name} ) {
+		# xk() as redefined callback method in derived class
+		$config{ extend_keys } = \&{$meth_name};
 	}
 
     }
@@ -506,7 +524,7 @@ Template::Plugin::TwoStage - two stage processing of template blocks with first 
 
 =head1 VERSION
 
-version 0.05
+version 0.06
 
 =head1 SYNOPSIS
 
