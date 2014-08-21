@@ -1,17 +1,14 @@
 #
 # This file is part of Template-Plugin-TwoStage
 #
-# This software is copyright (c) 2010 by Alexander Kühne.
+# This software is copyright (c) 2014 by Alexander KÃ¼hne.
 #
 # This is free software; you can redistribute it and/or modify it under
 # the same terms as the Perl 5 programming language system itself.
 #
 package Template::Plugin::TwoStage;
-BEGIN {
-  $Template::Plugin::TwoStage::VERSION = '0.06';
-}
 # ABSTRACT: two stage processing of template blocks with first stage caching
-
+$Template::Plugin::TwoStage::VERSION = '0.07'; # TRIAL
 
 use warnings;
 use strict;
@@ -102,13 +99,9 @@ sub load {
    
     my $config = $class->compile_options( $context );
 
-    # register caching directory with TT2-config variable INCLUDE_PATH
-
     my $caching_dir = $config->{ caching_dir };
     eval { mkpath( $caching_dir, 0, 0700 ) };
-    if ( $@ ) {
-	$class->error( "Couldn't create directory: $caching_dir. Error message: $@" );
-    }
+    $class->error( "Couldn't create directory: $caching_dir. Error message: $@" ) if $@;
    
     # We choose to have a specific provider for the plugin, because we do not want 
     # to make any assumptions about which provider class is used by the user.
@@ -134,7 +127,7 @@ sub load {
 		INCLUDE_PATH => $inc_path,
 		CACHE_SIZE => $config->{ tt_cache_size },
 		COMPILE_EXT => '.ttc',
-		COMPILE_DIR => _concat_path( $inc_path, 'tt_compiled' ),
+		COMPILE_DIR => _concat_path( $inc_path, 'tt_compiled' ) 
 	}
     );
     push @{$context->{ LOAD_TEMPLATES }}, $p;
@@ -142,7 +135,8 @@ sub load {
     $context->{ PREFIX_MAP }->{ twostage } = [ $p ];
     
     print STDERR "$class:\nwe use caching dir: $caching_dir\n" if DEBUG;
-    return $class;
+
+    $class;
 }
 
 
@@ -187,6 +181,7 @@ sub compile_options {
     $config{ extend_keys } = \&Template::Plugin::TwoStage::extend_keys;
 
     if ( $class eq __PACKAGE__ && ( my $c = $context->{ CONFIG }->{ TwoStage } ) ) {
+
     	my @ack_opts = grep { scalar grep /^$_$/, @options } keys %$c;
 	# slurp in all options from TT2 main configuration hash
 	@config{ @ack_opts } = @$c{ @ack_opts };
@@ -197,6 +192,7 @@ sub compile_options {
 	}
 
     } elsif ( $class ne __PACKAGE__ ) {
+
     	no strict 'refs';
 	my $meth_name = "${class}::extend_keys";
     	if ( defined &{$meth_name} ) {
@@ -239,17 +235,17 @@ sub dump_options {
 
 
 sub process {
-    my $self = shift;
-    my $params = shift;
-    my $localize = shift || 0;
+    my( $self, $params, $localize ) = @_;
+    $localize ||= 0;
     my $context = $self->{CONTEXT};
     my $stash = $context->stash();
 
     exists( $params->{template} ) || $self->error( "Pass template => \$name !" );
-    $self->{prec_template} = {}; # reset template properties
+    $self->{prec_template} = {}; # store for properties of current template processed
     $self->{params} = $params; # parameters handed to process()
     $self->{params}->{keys} = $self->_complement_keys( $params->{keys} || {} );
 
+    # make the config options local to this call
     local $self->{CONFIG} = 
     { 
     	%{$self->{CONFIG}},
@@ -259,57 +255,67 @@ sub process {
 		delete @p{ qw( caching_dir tt_cache_size ) };
 	    	%p 
 	} 
-    }; # making the config options local to this call
+    }; 
 
-    if ( $stash->get( 'TwoStage_precompile_mode') ) {    
+    if ( $stash->get( 'TwoStage_precompile_mode') ) {   
+
     	# don't do runtime phase processing if the template is called in precompilation mode
     	print STDERR "$params->{template}: precompile_mode ack..." if DEBUG;
 	return $context->process( $params->{template}, {}, 1 );	
     }
 
-    if ( !$self->{CONFIG}->{dev_mode} ) {
-    	print STDERR 
-	"try using cached version of component ($params->{template}) ".$self->_signature."\n"
-      	."INCLUDE_PATH: ".join( ' : ', @{$context->{CONFIG}->{INCLUDE_PATH}} )."\n" 
-		if DEBUG;
 
-    	print STDERR "keys: \n".( join "\n", map { "$_ -> $self->{params}->{keys}->{$_}" } keys %{$self->{params}->{keys}} )."\n\n" if DEBUG;
+    print STDERR 
+    "try using cached version of component ($params->{template}) ".$self->_signature."\n"
+    ."dev_mode: ".$self->{CONFIG}->{dev_mode}."\n"
+    ."INCLUDE_PATH: ".join( ' : ', @{$context->{CONFIG}->{INCLUDE_PATH}} )."\n" 
+    ."keys: \n".( join "\n", map { "$_ -> $self->{params}->{keys}->{$_}" } keys %{$self->{params}->{keys}} )."\n\n" 
+    	if DEBUG;
 
-        # stat() the precompiled template to play safely with negative caching of TT2 introduced in recent versions 
-        # in combination with a positive STAT_TTL! Else requesting for a not yet existing precompiled version
-	# would lead to an immediate decline of a future request for the same precompiled template without 
-	# further stat() checks by the provider - even if it has been created on disk in the meantime.
+    # stat() the cached precompiled version to play safely with negative 
+    # caching of TT2 introduced in recent versions!
+    # Else requesting for a not yet existing precompiled version 
+    # would lead to an immediate decline of a future request for the same precompiled template without 
+    # further stat() checks by the provider - even if it has been created on disk in the meantime.
+
+    my @stat = stat( $self->_file_path );
+
+    print STDERR "template.modtime: ".$stash->get( 'template.modtime' )." - ttl: $self->{CONFIG}->{ttl} ".time()." <= ".( $stat[9] + $self->{CONFIG}->{ttl})."\n" 
+	if DEBUG && scalar( @stat ); 
+
+    if ( scalar( @stat )
+     	 && 
+	 $stash->get( 'template.modtime' ) <= $stat[9] # cached version outdated?
+    	 &&
+    	 !$self->{CONFIG}->{dev_mode} # forces in cases of nested TwoStage processed templates a refresh also for modified inner templates
+    	 && 
+	 ( !$self->{CONFIG}->{ttl} || time() <= ($stat[9] + $self->{CONFIG}->{ttl}) ) 
+
+    ) {
+
+	print STDERR "file ".$self->_file_path." successfully stat()ed\n" if DEBUG;
 	
-	my @stat = stat( $self->_file_path );
-
-	print STDERR "ttl: $self->{CONFIG}->{ttl} ".time()." <= ".( $stat[9] + $self->{CONFIG}->{ttl})."\n" 
-		if DEBUG && scalar( @stat ); 
-
-        if ( scalar( @stat ) 
-	     && 
-	     ( !$self->{CONFIG}->{ttl} || time() <= ($stat[9] + $self->{CONFIG}->{ttl}) ) 
-	) {
-    		print STDERR "file ".$self->_file_path." successfully stat()ed\n" if DEBUG;
-		my $output;
-		eval {
-			$output = 
-			$context->process(
-				'twostage:'. # prefix for provider selection
-				uri_escape( ref($self), UNSAFE ).'/'
+	my $output;
+	eval {
+		$output = 
+		$context->process(
+			'twostage:' # prefix for provider selection
+				.uri_escape( ref($self), UNSAFE ).'/'
 				.( do { my $dirs = join( '/', @{$self->_dynamic_dir_segments} ); $dirs ? $dirs.'/' : '' } )
 				.$self->_signature, 
-				{},
-				$localize
-			);  
-    		};
-	    	$self->error( "Retrieval though stat()'ed successfully (".$self->_file_path."): FAILED ($@)\n" ) if $@;
-        	print STDERR "Using cached output:\n\n $output\n\n" if DEBUG;
-    		return $output;
-	}
+			{},
+			$localize
+		);  
+	};
+	
+	$self->error( "Retrieval though stat()'ed successfully (".$self->_file_path."): FAILED ($@)\n" ) if $@;
+	print STDERR "Using cached output:\n\n $output\n\n" if DEBUG;
+
+	return $output;
     }
 
     # process precompiled component
-    return $context->process( $self->_precompile, {}, $localize ); 
+    $context->process( $self->_precompile, {}, $localize ); 
 }
 
 sub include {
@@ -346,21 +352,19 @@ sub _complement_keys {
 
     my $callers = $self->{CONTEXT}->stash->get( 'component.callers' );
 
-    return( 
-    	{ 
-		%{ $self->{CONFIG}->{extend_keys}->( $self ) }, 
-		%{$keys}, 
-		'_file_scope' => 
-		( ref($callers) ? join( '\\', @{$callers} ) : '' )
-		.$self->{CONTEXT}->stash->get( 'component.name' ) 
-			# For making BLOCK name in template file scoped we need a unique identifier:
-			# component.callers + component.name 
-			# This approach introduces the drawback that a BLOCK defined in a template being 
-			# included in different other templates as an "intra" is cached for each call stack
-			# path seperately! But it is a feasable workaround as we don't know how to figure
-			# out the name of the template the BLOCK was defined in.
-	} 
-    );
+    +{ 
+	%{ $self->{CONFIG}->{extend_keys}->( $self ) }, 
+	%{$keys}, 
+	'_file_scope' => 
+	( ref($callers) ? join( '\\', @{$callers} ) : '' )
+	.$self->{CONTEXT}->stash->get( 'component.name' ) 
+		# For making BLOCK name in template file scoped we need a unique identifier:
+		# component.callers + component.name 
+		# This approach introduces the drawback that a BLOCK defined in a template being 
+		# included in different other templates as an "intra" is cached for each call stack
+		# path seperately! But it is a feasable workaround as we don't know how to figure
+		# out the name of the template the BLOCK was defined in.
+    }; 
 }
 
 sub _precompile {
@@ -379,6 +383,7 @@ sub _precompile {
     eval {
 	$template = $context->process( $self->{params}->{template}, { TwoStage_precompile_mode => 1 }, 1 );
     };
+
     if ( $@ ) {
 	print STDERR "\tFAILED ($@)\n"  if DEBUG;
 	$self->error( ref($@) ? $@ : "Precompilation of module $self->{params}->{template}: $@ \n" );
@@ -408,11 +413,14 @@ sub _precompile {
     
 
     if ( Encode::is_utf8( $template ) ) {
+
     	print STDERR "_precompile: encode\n" if DEBUG;
     	$out = Encode::decode_utf8( "\x{ef}\x{bb}\x{bf}" ).$out; # utf8 bom is stripped off again on load by Template::Provider
 	binmode( $fh ); # turn off crlf io layer!?
 	binmode( $fh, ':encoding(utf8)' );
+
     } else {
+
     	print STDERR "_precompile: octets\n" if DEBUG;
 	binmode( $fh );
     }
@@ -426,7 +434,7 @@ sub _precompile {
 sub _signature {
     my $self = shift;
     # produce signature
-   
+  
     $self->{prec_template}->{signature} 
     ||=
     sha1_hex(
@@ -516,7 +524,10 @@ sub _concat_path {
 1; # End of Template::Plugin::TwoStage
 
 __END__
+
 =pod
+
+=encoding UTF-8
 
 =head1 NAME
 
@@ -524,7 +535,7 @@ Template::Plugin::TwoStage - two stage processing of template blocks with first 
 
 =head1 VERSION
 
-version 0.06
+version 0.07
 
 =head1 SYNOPSIS
 
@@ -536,10 +547,10 @@ Sample Configuration via TT configuration:
 
 Basic usage in the a TT2-template:
 
-   [% 	USE TwoStage = TwoStage;
-	TwoStage.process( 
-		'template' => 'cached_page', 
-		keys => { 'bar' => bar  }, 
+   [% 	USE TwoStage; 
+   	TwoStage.process( 
+		template => 'cached_page', 
+		keys => { bar => bar  }, 
 		ttl => 60 * 60 
 	);
 
@@ -583,7 +594,7 @@ Set your basic configuration in the TT configuration, or in a subclass of this p
 
 =back
 
-=head1 MOTIVATIONS FOR USE
+=head1 USE CASES
 
 You might benefit from this module if ... 
 
@@ -929,14 +940,13 @@ Template::Plugin, L<http://search.cpan.org/dist/Template-Plugin-Cache>
 
 =head1 AUTHOR
 
-Alexander Kühne <alexk@cpan.org>
+Alexander KÃ¼hne <alexk@cpan.org>
 
 =head1 COPYRIGHT AND LICENSE
 
-This software is copyright (c) 2010 by Alexander Kühne.
+This software is copyright (c) 2014 by Alexander KÃ¼hne.
 
 This is free software; you can redistribute it and/or modify it under
 the same terms as the Perl 5 programming language system itself.
 
 =cut
-

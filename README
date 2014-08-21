@@ -3,7 +3,7 @@ NAME
     with first stage caching
 
 VERSION
-    version 0.06
+    version 0.07
 
 SYNOPSIS
     This is a plugin for the Template Toolkit that facilitates a two stage
@@ -19,10 +19,10 @@ SYNOPSIS
 
     Basic usage in the a TT2-template:
 
-       [%   USE TwoStage = TwoStage;
+       [%   USE TwoStage; 
             TwoStage.process( 
-                    'template' => 'cached_page', 
-                    keys => { 'bar' => bar  }, 
+                    template => 'cached_page', 
+                    keys => { bar => bar  }, 
                     ttl => 60 * 60 
             );
 
@@ -69,7 +69,7 @@ FEATURES
         plugin construction or even on single plugin method calls to
         include() or process() in the templates.
 
-MOTIVATIONS FOR USE
+USE CASES
     You might benefit from this module if ...
 
     *   ... you have static external content e.g. from databases or
@@ -504,10 +504,10 @@ SEE ALSO
     Template::Plugin, <http://search.cpan.org/dist/Template-Plugin-Cache>
 
 AUTHOR
-    Alexander Kühne <alexk@cpan.org>
+    Alexander KÃ¼hne <alexk@cpan.org>
 
 COPYRIGHT AND LICENSE
-    This software is copyright (c) 2010 by Alexander Kühne.
+    This software is copyright (c) 2014 by Alexander KÃ¼hne.
 
     This is free software; you can redistribute it and/or modify it under
     the same terms as the Perl 5 programming language system itself.

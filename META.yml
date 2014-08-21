@@ -1,16 +1,20 @@
 ---
 abstract: 'two stage processing of template blocks with first stage caching'
 author:
-  - 'Alexander Kühne <alexk@cpan.org>'
+  - 'Alexander KÃ¼hne <alexk@cpan.org>'
 build_requires:
-  File::Find: 0
+  File::Spec: 0
   File::Temp: 0
+  IO::Handle: 0
+  IPC::Open3: 0
   Template::Test: 0
   Test::More: 0
+  lib: 0
+  perl: 5.008
 configure_requires:
-  ExtUtils::MakeMaker: 6.31
+  ExtUtils::MakeMaker: 6.30
 dynamic_config: 0
-generated_by: 'Dist::Zilla version 4.101900, CPAN::Meta::Converter version 2.101670'
+generated_by: 'Dist::Zilla version 5.015, CPAN::Meta::Converter version 2.140640'
 license: perl
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html
@@ -23,12 +27,17 @@ requires:
   Encode: 0
   File::Path: 0
   File::Spec: 0
+  File::Temp: 0
   Template: 2.01
   Template::Exception: 0
   Template::Parser: 0
   Template::Plugin: 0
   Template::Provider: 0
   URI::Escape: 0
+  URI::Escape::XS: 0
+  base: 0
   constant: 0
-  perl: 5.006
-version: 0.06
+  perl: 5.008
+  strict: 0
+  warnings: 0
+version: 0.07

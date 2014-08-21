@@ -1,5 +1,17 @@
 Revision history for Template-Plugin-TwoStage
 
+0.07      2014-08-21 11:39:34CEST+0200 Europe/Berlin (TRIAL RELEASE)
+ - doc improvements
+ - force in cases of nested TwoStage processed templates
+   a refresh also for modified inner templates
+ - module is now ready for releases with Dist::Zilla version 5.x
+ - use temporary TT caching directories for tests in order 
+   to avoid directory permission problems when installing - 
+   respectively testing - this module with different 
+   user accounts on same box
+ - exclude module Template::Plugin::TwoStage::Test from
+   PAUSE indexing
+
 0.06      2010-08-09 10:43:50 Europe/Berlin
  - set DEBUG constant via environment variable
  - debugging; support for extend_keys callback

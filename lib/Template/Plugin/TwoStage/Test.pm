@@ -1,24 +1,23 @@
 #
 # This file is part of Template-Plugin-TwoStage
 #
-# This software is copyright (c) 2010 by Alexander Kühne.
+# This software is copyright (c) 2014 by Alexander KÃ¼hne.
 #
 # This is free software; you can redistribute it and/or modify it under
 # the same terms as the Perl 5 programming language system itself.
 #
-package Template::Plugin::TwoStage::Test;
-BEGIN {
-  $Template::Plugin::TwoStage::Test::VERSION = '0.06';
-}
+package # hide from pause
+	Template::Plugin::TwoStage::Test;
 # ABSTRACT: derived class for self-tests only
 
 use strict;
 use warnings;
 use base qw( Template::Plugin::TwoStage );
-use File::Spec ();
+use File::Temp 'tempdir';
 use Cwd ();
 
-__PACKAGE__->caching_dir( Template::Plugin::TwoStage::_concat_path( File::Spec->tmpdir(), [qw( alt_tt2_TwoStage )] ) );
+Template::Plugin::TwoStage->caching_dir( tempdir( "TT_P_TwoStage_XXXXXX", TMPDIR => 1, CLEANUP => 1 ) );
+__PACKAGE__->caching_dir( tempdir( "TT_P_TwoStage_XXXXXX", TMPDIR => 1, CLEANUP => 1 ) );
 
 
 sub read_test_file { 
@@ -35,8 +34,7 @@ sub tt_config {
  	my ( $class, $config ) = @_;
 
 	return( 
-	  {
-		INCLUDE_PATH => [ Template::Plugin::TwoStage::_concat_path( Cwd::cwd(), [ 't', 'tt' ] ) ], 
+	  {	INCLUDE_PATH => [ Template::Plugin::TwoStage::_concat_path( Cwd::cwd(), [ 't', 'tt' ] ) ], 
 		POST_CHOMP => 1,
 		PLUGIN_BASE => 'Template::Plugin',
 		EVAL_PERL => 1,
@@ -49,7 +47,10 @@ sub tt_config {
 1;
 
 __END__
+
 =pod
+
+=encoding UTF-8
 
 =head1 NAME
 
@@ -57,7 +58,7 @@ Template::Plugin::TwoStage::Test - derived class for self-tests only
 
 =head1 VERSION
 
-version 0.06
+version 0.07
 
 =head2 METHODS
 
@@ -73,14 +74,13 @@ Returns a reference to a configuration hash with reasonable defaults suitable to
 
 =head1 AUTHOR
 
-Alexander Kühne <alexk@cpan.org>
+Alexander KÃ¼hne <alexk@cpan.org>
 
 =head1 COPYRIGHT AND LICENSE
 
-This software is copyright (c) 2010 by Alexander Kühne.
+This software is copyright (c) 2014 by Alexander KÃ¼hne.
 
 This is free software; you can redistribute it and/or modify it under
 the same terms as the Perl 5 programming language system itself.
 
 =cut
-
