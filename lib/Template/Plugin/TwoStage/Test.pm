@@ -58,7 +58,7 @@ Template::Plugin::TwoStage::Test - derived class for self-tests only
 
 =head1 VERSION
 
-version 0.07
+version 0.08
 
 =head2 METHODS
 

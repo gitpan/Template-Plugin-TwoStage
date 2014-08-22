@@ -8,7 +8,7 @@
 #
 package Template::Plugin::TwoStage;
 # ABSTRACT: two stage processing of template blocks with first stage caching
-$Template::Plugin::TwoStage::VERSION = '0.07'; # TRIAL
+$Template::Plugin::TwoStage::VERSION = '0.08';
 
 use warnings;
 use strict;
@@ -535,7 +535,7 @@ Template::Plugin::TwoStage - two stage processing of template blocks with first 
 
 =head1 VERSION
 
-version 0.07
+version 0.08
 
 =head1 SYNOPSIS
 
